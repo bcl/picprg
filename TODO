@@ -1,0 +1,31 @@
+1. Add a decent command line interface
+
+X 2. Add patches for using the newer kernel's /proc method of discovering what
+     lp ports are attached. Make it work with both new and old
+     Basically clean up its actions related to the LP port.
+
+X 3. Fix coredump when run as non-root/non-suid
+
+4. Freeze and release v2.3.0
+
+5. Add a switch for 16f84 that inverts the sense of the PWEN config bit
+   Uhh, what was this? I need the data sheets for the serially programmable
+   processors.
+
+X 6. Fix string copies that don't check for the length, home directory
+     especially.
+
+X 7. Integrate the /proc/ioports patches from Lee Olson
+     Or maybe rewrite to use kernel lowlevel parallel port driver module? I
+     don't like having to use the iopl(3) to gain permission to the higher
+     port numbers. It may have to do for this release though.
+
+8. Dynamically allocate lp_table space, based on the info snarfed from the
+   /proc/ioports output.
+
+9. Dynamically allocate memory based on the processor configured for, check
+   the current list of PIC processors that this can support and add any that
+   are new to a list to be selected from.
+
+10. Support any other serially programmable PIC parts.
+

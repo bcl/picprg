@@ -1,0 +1,224 @@
+Linux PIC programmer			  Copyright 1994-2002 by Brian C. Lane
+------------------------------------------------------------------------------
+
+  PIC programmer is a program to use a PIC programmer attached to the
+parallel port of a PC running Linux. It currently only supports programming
+the 16C84 processors. It can support a wide range of programmer styles
+through the configuration menu.
+
+  You should run the program as root, because it needs direct access to the
+parallel port to control the programmer. If you are running it from an xterm
+you should set TERM=xterm-color so that ncurses will display the colors
+correctly.
+
+  Non-color displays should automaticly be detected. If you have problems,
+run picprg with the '-m' argument to turn on the monochrome mode.
+
+  The latest release is v2.3 as of 08/23/2002
+
+  Compiling PIC programmer
+  ------------------------
+
+  Type 'make' and 'make install' to build the program and install it as suid
+root in /usr/local/bin (remember that this may be a potential security hole)
+with permissions set to 4700. I am using it under Linux kernel v2.0.33 with
+ncurses v1.9.9g hopefully you won't have to do anything extra to get it to
+work on your system. If you have problems or need to make changes, please
+tell me and I will try to incorporate them into the next release.
+ 
+  v2.3.0 now works with kernel v2.4.18 on a customized RH 7.3 install using
+ncurses 5.2-26 from the RedHat package.
+
+
+  Initial Setup
+  -------------
+
+  You should know which parallel port pins your programmer is attached to.
+Also, you should have a voltmeter or some other device to indicate power
+during the setup test. Run the program with the -p option to tell it which
+parallel port your programmer is attached to. For example if your programmer
+is attached to /dev/lp1 like mine is then you would run it like this:
+
+  picprg -p1 
+
+  You will see the main screen, press C to get to the configuration menu.
+You will see a list of selections with the cursor on the parallel port. Use
+the up and down arrows to switch between options.
+
+  PIC programmer is initially setup for a normal David Tait style
+programmer, if this is what you are using, jump ahead to the 'Testing It Out'
+section. Enter the pin numbers for each connection on your programmer (valid
+numbers are from 1-17). If your programmer uses an inverter on that line
+then press '-' to select the inverted state.
+
+
+  Testing It Out
+  --------------
+
+  Now, get out your voltmeter, or whatever you are going to use for
+detecting power (it should be able to handle at least 13v). Connect GND to
+pin 5 on your programming socket. Then select Vpp in the configuration menu
+and hit 'O' and 'F' to turn it on and off. You should see pin 4 going from
+0v to 13v or so (depends on the programmer). Repeat this for each of the
+pins listed below:
+
+  Vpp      - pin 4
+  Vdd      - pin 14
+  Clock    - pin 12
+  Data Out - pin 13
+
+  The state of the Data In pin should be the same state as the Data Out pin.
+
+  Once you have all the voltages swinging the right direction hit 'S' to
+save the configuration to ~/.picprgrc, now all you have to type to run it
+is picprg. You are all ready to start using PIC programmer!
+
+
+  File Types
+  ----------
+
+  I used to have support for Ian King's pictools format, but since I can't
+find Ian on the net anymore, and since it really was a non-standard format
+(Microchip defines that the eeprom and config bits have memory locations) I
+have dropped support for pictools.
+
+  I do support Intel HEX 16 format, which will be supported by any decent
+assembler that you can find (I recommend picasm v1.05+). The fuse and eeprom
+locations can be defined in the configuration menu if they are not in the
+standard locations.
+
+  v2.0 had a bug in it. It actually only supported INHX8M formatted files.
+This was because when I first wrote the program I used code from Ian King,
+and he mis-labeled the code (and there was some confusion as to what 8m and
+16 really were). The 8M format has the bytes reversed and the address count
+doubled (because it works on byte by byte). INHX16 uses the normal byte
+ordering (MSB first, just as God intended it to be!) and address counts.
+
+  Through a miracle of modern programming (Hmm, I'm starting to sound like a
+Microsoft marketing type) I now support both formats automaticly. Just type
+in the filename and the program will figure it out. I recommend using INHX16
+though -- it makes more sense and I hate it when you have to end up
+supporting bad formats just because everyone else does it (sound familiar?).
+
+
+  Loading a File
+  --------------
+  When a file is loaded it is stored in the internal buffer. The clock type
+and fuse states are displayed on the second line of the display while the
+file is in memory. The clock type and fuse states are determined by looking
+for the addresses defined in the configuration menu.
+
+
+  Writing a File
+  --------------
+  This will write a Intel HEX 16 format file with the eeprom and fuse data
+in the locations defined in the configuration menu.
+
+
+  Reading a PIC
+  -------------
+  Make sure the programmer is connected correctly and that the processor is
+plugged in correctly. Hit the 'R' key from the main menu and the data from
+the processor will be read into the internal buffer and its clock type and
+fuse states will be displayed on the second line of the display. As it is
+reading it will display every 16th address, just to let you know it is
+working diligently at its task.
+
+
+  Programming a PIC
+  -----------------
+  Make sure the programmer is connected correctly and that the processor is
+plugged in correctly and hit P. The data in RAM will be written to the PIC
+and the 3rd line will display 'Programming PIC.' If any errors are found,
+they will be displayed showing the address, the value read, and the value
+expected in the form: ADDR: read != written. It will also display every 16th
+address as it programs, telling you that its is still working and hasn't
+taken one of Linus' famous beer breaks.
+
+
+  Displaying RAM
+  --------------
+  You can review the loaded RAM image by hitting 'D' from the main menu and
+using the Arrow keys, page up and down, and space(page down) keys. Editing
+is not available, I did not think that it was worth the effort of adding it.
+
+
+  ID and FUSE data
+  ----------------
+  When reading a INHX16 file the ID and fuse data are taken from the memory
+locations specified in the configuration menu. Microchip defines that this
+be 0x2000, but some people have other ideas.
+
+  v2.0 had a slight bug in it <G>. It wouldn't build the fuse data correctly
+in most circumstances (of course it worked fine for me when I originally
+tested it!), this was another holdover from pictools support where it would
+remove the fuse data from the memory map, set a bunch of flags, and then
+when writing or saving it would re-construct the byte. Well, all that has
+been removed. The fuse data stays in the memory map, and is not altered in
+any way by the program.
+
+
+  EEPROM data
+  -----------
+  EEPROM data is programmed into the pic from the RAM location specified by
+the EEaddr in the configuration menu. This value defaults to 0x2100.
+
+
+  Command line parameters
+  -----------------------
+  Type picprg-? to get a list of options. It looks like this:
+
+  Usage: picprg -p[0-2] -i[hex] -e[hex] <filename>
+
+  -p[0-2]  =  Parallel port to use
+  -i[hex]  =  HEX value of ID data address in memory map.
+  -e[hex]  =  HEX value of EEPROM data address in memory map.
+
+  I am planning on adding command line operation soon so that you can read
+and program the PIC from the command line. If you have any suggestions or
+comments, please email me at bcl@brianlane.com -- Check out my webpage for the
+latest info (including the current temperature in my workroom and computer).
+
+  Even if you don't have any comments I'd like to hear from people using the
+program, just so that I know someone other than me is using it <G>.
+
+  Brian
+
+  bcl@brianlane.com
+  http://www.brianlane.com/
+
+  Thanks!
+  -------
+
+  I'd like to thank xxx for being the first person to tell me he was using
+the program, and for reporting a bunch of really dumb bugs. I'd also like to
+thank Paul Haas for providing the patch that makes it work with open
+collector programmers.
+
+
+  Disclaimer
+  ----------
+
+  This program was written by a human. Because of this its reliability
+cannot be guaranteed in any way. It may or may not work for you, it may work
+for a while, then quit, or it may work forever. You cannot hold me liable
+for any lost work, time, etc. as a result of bugs in this program. Like all
+other software, you use it at your own risk.
+
+  It is released under GPL v2.0 which essentially means you can do what you 
+will with it, as long as you give credit and include the source in any 
+downstream derivitive.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
